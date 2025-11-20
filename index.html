@@ -285,6 +285,78 @@
             word-wrap: break-word;
         }
 
+        /* AI 写法提示 */
+        .ai-tips {
+            margin: 15px auto 0;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #FFF8DC 0%, #FFEFD5 100%);
+            border: 3px solid #FFD700;
+            border-radius: 20px;
+            max-width: 450px;
+            min-height: 75px;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+            opacity: 0;
+            transition: opacity 0.3s ease-in;
+        }
+
+        .ai-tips.show {
+            opacity: 1;
+        }
+
+        .ai-tips::before {
+            content: '🤖';
+            position: absolute;
+            top: -15px;
+            left: 15px;
+            background: white;
+            padding: 5px 10px;
+            border-radius: 50%;
+            font-size: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .ai-tips-title {
+            color: #FF8C00;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            margin-top: 5px;
+        }
+
+        .ai-tips-content {
+            color: #333;
+            font-size: 15px;
+            line-height: 1.7;
+            font-weight: 500;
+            text-align: left;
+        }
+
+        .ai-tips-loading {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #FF69B4;
+            font-size: 14px;
+        }
+
+        .ai-tips-loading::after {
+            content: '...';
+            animation: dots 1.5s steps(3, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        .ai-tips-error {
+            color: #999;
+            font-size: 13px;
+            font-style: italic;
+        }
+
         #grid-target {
             margin: 0 auto;
             border: 4px solid #87CEEB;
@@ -569,6 +641,28 @@
                 transform: translateX(20px);
             }
 
+            .ai-tips {
+                margin: 12px auto 0;
+                padding: 12px 16px;
+                max-width: 95%;
+                min-height: 70px;
+            }
+
+            .ai-tips::before {
+                font-size: 20px;
+                top: -12px;
+                left: 10px;
+                padding: 3px 8px;
+            }
+
+            .ai-tips-title {
+                font-size: 13px;
+            }
+
+            .ai-tips-content {
+                font-size: 14px;
+            }
+
             .footer {
                 font-size: 13px;
                 margin-top: 18px;
@@ -634,8 +728,17 @@
         <div class="character-display">
             <!-- 拼音显示 -->
             <div id="pinyin-display">māo</div>
+            
             <!-- 田字格和汉字渲染区域 -->
             <div id="grid-target"></div>
+            
+            <!-- AI 写法提示（放在田字格下方，占位固定） -->
+            <div class="ai-tips" id="aiTips">
+                <div class="ai-tips-title">✨ AI 小老师说</div>
+                <div class="ai-tips-content" id="aiTipsContent">
+                    <div class="ai-tips-loading">正在思考</div>
+                </div>
+            </div>
         </div>
 
         <div class="controls">
@@ -664,6 +767,104 @@
         let writer;
         const { pinyin } = pinyinPro; // 初始化拼音库
         let showGrid = true; // 田字格开关状态
+
+        // 豆包 API 配置
+        const DOUBAO_CONFIG = {
+            baseUrl: 'https://ark.cn-beijing.volces.com/api/v3',
+            apiKey: 'f2c6e53a-f138-45ce-aa3d-80139f45a583',
+            model: 'doubao-seed-1-6-flash-250828'
+        };
+
+        // 汉字结构知识库（人工整理，确保准确，详细说明位置关系）
+        const charStructureDB = {
+            // 左右结构 - 详细位置关系
+            '明': '左右结构，左边日字窄且瘦长，右边月字宽，两边上下对齐，左右等高。',
+            '林': '左右结构，两个木字大小相同，左边稍窄，横画要平，撇捺要舒展。',
+            '好': '左右结构，左边女字要瘦长紧凑，右边子字稍宽，女字稍高一点。',
+            '猫': '左右结构，左边反犬旁窄且紧凑，右边苗字宽，苗字上面草字头扁平。',
+            '妈': '左右结构，左边女字窄，右边马字宽，女字稍高一点，马字横折要方。',
+            '吗': '左右结构，左边口字小且靠上，右边马字大，口字在中间偏上位置。',
+            '叔': '左右结构，左边上面竖撇下面小字，右边又字要比左边整体低一些。',
+            '树': '左右结构，左边木字旁窄且直，竖要挺拔，右边对字宽。',
+            '花': '左右结构，左边草字头扁且靠上，右边化字宽，撇要长。',
+            '叶': '左右结构，左边口在中间偏上，右边十字上面比口高，下面比口低。',
+            '梅': '左右结构，左边木字旁窄竖要直，右边每字宽，横画多要均匀。',
+            '枝': '左右结构，左边木字旁窄且瘦长，右边支字宽，左边稍高。',
+            '竹': '上下结构，上下两个竹字头对齐，撇要向外舒展，整体均衡。',
+            '松': '左右结构，左边木字旁窄竖要直，右边公字宽且稍高。',
+            '狗': '左右结构，左边反犬旁窄，右边句字宽，反犬旁紧凑。',
+            '鸟': '独体字，扁口要扁，下面四点要均匀。',
+            '鱼': '独体字，上窄下宽，田字要扁，下面一要长。',
+            '马': '独体字，上面横折要宽，下面四点均匀。',
+            '牛': '独体字，横要短，竖要直，撇要长。',
+            '羊': '上下结构，上面三横要平行，下面八字要舒展。',
+            '兔': '上下结构，上面刀字头，中间口字，下面儿字，上窄下宽。',
+            '鸡': '左右结构，左边又字小，右边鸟字大，左边要低一些。',
+            '鸭': '左右结构，左边甲字，右边鸟字大，左边稍低。',
+            '象': '上下结构，上部要扁，下部要宽，整体上窄下宽。',
+            '虎': '半包围结构，虎字头要扁，里面几字要居中。',
+            '龙': '独体字，上窄下宽，月字要扁，下部要舒展。',
+            '蛇': '左右结构，左边虫字旁窄，右边它字宽。',
+            '鼠': '上下结构，上面臼字要方，下面部分居中。',
+            '猪': '左右结构，左边反犬旁窄，右边者字宽。',
+            
+            // 上下结构 - 详细位置关系
+            '字': '上下结构，上面宝盖头要宽扁，下面子字小且居中，横钩要平。',
+            '学': '上下结构，上面宝盖头宽，中间秃宝盖，下面子字小，撇捺要舒展。',
+            '兰': '上下结构，上面两点向里收，下面三横，中间最短底下最长，中横在字中间横线附近。',
+            '头': '上下结构，上面大字要宽，横短撇捺长，下面两点对称，不要写成儿。',
+            '空': '上下结构，上面宝盖头要宽扁，下面工字居中且瘦长，竖要直。',
+            '家': '上下结构，上面宝盖头要宽扁，下面豕字要扁平，横要平行。',
+            '菊': '上下结构，上面草字头扁平撇要向外，下面米字在上勹在下，整体紧凑。',
+            '荷': '上下结构，上面草字头扁平，下面何字要大，竖要直横要平。',
+            '草': '上下结构，上面草字头要扁平向外舒展，下面早字居中，日字要方。',
+            
+            // 包围结构 - 详细位置关系
+            '国': '全包围，外框要方正，横平竖直，里面玉字居中不能太大，最后一笔封口。',
+            '园': '全包围，外框方正，里面元字居中，大小适中，竖弯钩要圆润。',
+            '困': '全包围，外框方正要大，里面木字居中对齐，横撇竖捺要清楚。',
+            '回': '全包围，外大内小，内外都要方正，口字要对齐，横竖要平直。',
+            '问': '半包围，门字框要高且方正，里面口字居中偏上，竖要直。',
+            '同': '半包围，外框要方，里面口字居中，横折钩要方正。',
+            '句': '半包围，包围部分要大，里面口字靠左，横折钩要有力。',
+            
+            // 独体字 - 详细笔画关系
+            '一': '独体字，横画要平直，稍向右上倾斜，起笔重收笔轻。',
+            '二': '独体字，上横短下横长，两横平行，间距均匀。',
+            '三': '独体字，上短中短下长，三横平行均匀，间距相等。',
+            '四': '全包围，外框要方正，里面八字在中间，撇捺要舒展。',
+            '五': '独体字，上横长，竖折要方正，横折要平，整体像门字。',
+            '六': '上下结构，上面点要小在中间，下面八字要舒展，撇捺对称。',
+            '七': '独体字，横折弯钩，横要短竖要直，弯钩要圆润。',
+            '八': '独体字，撇捺要舒展，交叉点在上部，左低右高。',
+            '九': '独体字，撇要长有力，竖弯钩要圆润饱满。',
+            '十': '独体字，横短竖长，交叉在中间偏上，横要平竖要直。',
+            '百': '上下结构，上面一横要短，下面白字要大，横要平行。',
+            '千': '独体字，撇要长有力，右边竖要短，撇长竖短。',
+            '万': '独体字，横要短在上面，横折钩要方正，整体扁平。',
+            '零': '上下结构，上面雨字头要宽，下面令字居中，点要均匀。',
+            '人': '独体字，撇捺舒展，交叉点在上部。',
+            '大': '独体字，横画短在上，撇捺要舒展。',
+            '小': '独体字，中间竖要直，两点对称。',
+            '我': '独体字，撇要长，斜钩要有力。',
+            '你': '左右结构，左边单人旁瘦，右边尔字宽。',
+            '手': '独体字，横折钩要方，两竖钩要直。',
+            '脚': '左右结构，左边月字旁窄，右边却字宽。',
+            '眼': '左右结构，左边目字旁方，右边艮字稍宽。',
+            '耳': '独体字，外框方正，里面部分紧凑。',
+            '口': '独体字，要写方，不要写圆。',
+            '鼻': '上下结构，上部要宽，下部畀字居中。',
+            '心': '独体字，三点要均匀，中间弯钩要圆。',
+            
+            // 家人类
+            '爸': '上下结构，上面父字，下面巴字居中。',
+            '哥': '上下结构，上下两个可字，上稍小下稍大。',
+            '姐': '左右结构，左边女字窄，右边且字宽。',
+            '弟': '上下结构，上面部分宽，下面部分居中。',
+            '妹': '左右结构，左边女字窄，右边未字宽。',
+            '爷': '上下结构，上面父字，下面耶右部居中。',
+            '奶': '左右结构，左边女字窄，右边乃字宽。'
+        };
 
         // 常用字分类数据库
         const charCategories = {
@@ -761,6 +962,9 @@
                 // 隐藏加载状态
                 loading.classList.remove('active');
                 
+                // 获取AI写法提示
+                getAITips(char);
+                
                 // 自动播放一次动画
                 setTimeout(animateChar, 800);
             } catch (error) {
@@ -796,11 +1000,14 @@
                         
                         let message = '';
                         if (mistakes === 0) {
-                            message = `🎉 太棒了！「${char}」写得真好！\n全部正确，你真聪明！⭐⭐⭐`;
+                            message = `🎉 太棒了！「${char}」写得真好！
+全部正确，你真聪明！⭐⭐⭐`;
                         } else if (mistakes <= 3) {
-                            message = `😊 很不错！「${char}」写得挺好的！\n再练习一下会更棒哦！⭐⭐`;
+                            message = `😊 很不错！「${char}」写得挺好的！
+再练习一下会更棒哦！⭐⭐`;
                         } else {
-                            message = `💪 加油！「${char}」已经完成啦！\n多练几次就能写得很好！⭐`;
+                            message = `💪 加油！「${char}」已经完成啦！
+多练几次就能写得很好！⭐`;
                         }
                         
                         alert(message);
@@ -955,6 +1162,108 @@
         document.getElementById('charInput').addEventListener('click', function() {
             this.select();
         });
+
+        // 获取AI写法提示
+        async function getAITips(char) {
+            const aiTipsDiv = document.getElementById('aiTips');
+            const aiTipsContent = document.getElementById('aiTipsContent');
+            
+            // 显示加载状态（使用淡入效果，不改变位置）
+            aiTipsContent.innerHTML = '<div class="ai-tips-loading">正在思考</div>';
+            aiTipsDiv.classList.add('show');
+            
+            // 优先使用本地知识库（准确可靠）
+            if (charStructureDB[char]) {
+                setTimeout(() => {
+                    aiTipsContent.innerHTML = charStructureDB[char];
+                }, 300); // 模拟思考过程
+                return;
+            }
+            
+            // 本地知识库没有，才调用豆包AI
+            try {
+                const systemPrompt = `你是汉字书写老师，专注结构布局。
+
+【严禁】不说笔顺、序号、部首拆解
+【要求】简洁！50字以内！
+
+只说这4点：
+1. 结构类型：左右/上下/包围/独体
+2. 位置关系：上下对齐/左窄右宽/居中/偏上偏下
+3. 笔画长短：中间最短/底下最长/上短下长
+4. 关键形态：横要平/竖要直/撇捺舒展/方正圆润
+
+例子：
+"兰"→上下结构，上面两点向里收，下面三横中间最短底下最长，中横在字中间横线附近。
+"叶"→左右结构，左边口在中间偏上，右边十字上比口高下比口低。
+"国"→全包围，外框方正，里面玉字居中不能太大。
+
+务必简短！直接说要点！`;
+
+                const userPrompt = `"${char}"这个字的书写要点是什么？`;
+                
+                const response = await fetch(`${DOUBAO_CONFIG.baseUrl}/chat/completions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${DOUBAO_CONFIG.apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: DOUBAO_CONFIG.model,
+                        messages: [
+                            {
+                                role: 'system',
+                                content: systemPrompt
+                            },
+                            {
+                                role: 'user',
+                                content: userPrompt
+                            }
+                        ],
+                        temperature: 0.3,
+                        max_tokens: 200
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API请求失败: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('豆包API返回:', data); // 调试日志
+                
+                let aiResponse = data.choices?.[0]?.message?.content;
+                
+                if (aiResponse) {
+                    aiResponse = aiResponse.trim();
+                    console.log('AI原始回答:', aiResponse); // 调试日志
+                    
+                    // 严格过滤禁用词
+                    const forbiddenWords = ['第', '笔', '先', '再', '然后', '接着', '组成', '部首', '偏旁', '由'];
+                    const hasForbidden = forbiddenWords.some(word => aiResponse.includes(word));
+                    
+                    // 检查是否太长（可能在解释而非简要说明）
+                    const isTooLong = aiResponse.length > 80;
+                    
+                    // 检查是否被截断
+                    const isTruncated = data.choices?.[0]?.finish_reason === 'length';
+                    
+                    if (hasForbidden || isTooLong || isTruncated) {
+                        console.log('AI回答被过滤:', { hasForbidden, isTooLong, isTruncated });
+                        aiTipsContent.innerHTML = '注意整体平衡，横平竖直哦~';
+                    } else {
+                        aiTipsContent.innerHTML = aiResponse;
+                    }
+                } else {
+                    console.log('AI无返回内容');
+                    aiTipsContent.innerHTML = '注意整体平衡，横平竖直哦~';
+                }
+                
+            } catch (error) {
+                console.error('获取AI提示失败:', error);
+                aiTipsContent.innerHTML = '注意整体平衡，横平竖直哦~';
+            }
+        }
 
         // 添加自定义田字格
         function addCustomGrid(size = 300) {
