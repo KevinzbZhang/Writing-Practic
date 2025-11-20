@@ -263,57 +263,109 @@
             transform: translateY(0) scale(1);
         }
 
-        /* 汉字展示区 */
-        .character-display {
-            margin: 0 auto;
-            position: relative;
-            width: 100%;
-            max-width: 300px;
+        /* 多字符横向滑动容器 */
+        .characters-container {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 20px 10px;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: #FFB6C1 #FFF8DC;
+            justify-content: flex-start;
         }
 
-        #pinyin-display {
-            font-size: 40px;
+        /* 单个字时居中显示 */
+        .characters-container.single-char {
+            justify-content: center;
+        }
+
+        .characters-container::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .characters-container::-webkit-scrollbar-track {
+            background: #FFF8DC;
+            border-radius: 10px;
+        }
+
+        .characters-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #FFB6C1 0%, #FF69B4 100%);
+            border-radius: 10px;
+        }
+
+        /* 单个汉字展示区 */
+        .character-display {
+            min-width: 320px;
+            max-width: 320px;
+            flex-shrink: 0;
+            position: relative;
+            scroll-snap-align: center;
+            background: linear-gradient(135deg, #FFFEF0 0%, #FFF8DC 100%);
+            border: 3px solid #FFB6C1;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(255,182,193,0.3);
+        }
+
+        .pinyin-display {
+            font-size: 36px;
             color: #FF6347;
             font-weight: bold;
             margin-bottom: 15px;
-            min-height: 55px;
+            min-height: 50px;
             text-shadow: 2px 2px 6px rgba(255,99,71,0.3);
             background: linear-gradient(135deg, #FF6347 0%, #FF69B4 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            word-wrap: break-word;
+            text-align: center;
+        }
+
+        .grid-target {
+            margin: 0 auto;
+            border: 4px solid #87CEEB;
+            background-color: #FFFEF0;
+            cursor: pointer;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(135,206,235,0.3);
+            width: 100%;
+            max-width: 260px;
+        }
+
+        .char-controls {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .char-controls button {
+            font-size: 13px;
+            padding: 8px 14px;
         }
 
         /* AI 写法提示 */
         .ai-tips {
             margin: 15px auto 0;
-            padding: 15px 20px;
+            padding: 15px 20px 15px 20px;
             background: linear-gradient(135deg, #FFF8DC 0%, #FFEFD5 100%);
             border: 3px solid #FFD700;
             border-radius: 20px;
-            max-width: 450px;
-            min-height: 75px;
             position: relative;
             box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
             opacity: 0;
             transition: opacity 0.3s ease-in;
+            display: flex;
+            flex-direction: column;
         }
 
         .ai-tips.show {
             opacity: 1;
-        }
-
-        .ai-tips::before {
-            content: '🤖';
-            position: absolute;
-            top: -15px;
-            left: 15px;
-            background: white;
-            padding: 5px 10px;
-            border-radius: 50%;
-            font-size: 24px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .ai-tips-title {
@@ -321,15 +373,50 @@
             font-size: 14px;
             font-weight: bold;
             margin-bottom: 8px;
-            margin-top: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .speak-ai-btn {
+            background: linear-gradient(135deg, #FF69B4 0%, #FFB6C1 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(255,105,180,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .speak-ai-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(255,105,180,0.5);
+        }
+
+        .speak-ai-btn:active {
+            transform: scale(0.95);
         }
 
         .ai-tips-content {
             color: #333;
             font-size: 15px;
-            line-height: 1.7;
+            line-height: 1.6;
             font-weight: 500;
             text-align: left;
+            min-height: 72px;
+            max-height: 72px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            line-clamp: 3;
+            -webkit-box-orient: vertical;
         }
 
         .ai-tips-loading {
@@ -377,6 +464,21 @@
             flex-wrap: wrap;
         }
 
+        /* 全局控制按钮 */
+        .global-controls {
+            margin-top: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            padding: 0 20px;
+        }
+
+        .global-controls .grid-toggle {
+            margin: 0;
+        }
+
         .btn-outline {
             background: white;
             border: 3px solid #87CEEB;
@@ -401,12 +503,10 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            margin-top: 15px;
             padding: 8px 15px;
             background: #FFF8DC;
             border-radius: 20px;
             border: 2px solid #FFB6C1;
-            display: inline-flex;
         }
 
         .grid-toggle label {
@@ -504,17 +604,18 @@
             }
 
             .character-display {
-                width: 100%;
+                min-width: 280px;
                 max-width: 280px;
+                padding: 15px;
             }
 
-            #pinyin-display {
+            .pinyin-display {
                 font-size: 32px;
                 min-height: 45px;
             }
 
-            #grid-target {
-                max-width: 280px;
+            .grid-target {
+                max-width: 240px;
             }
 
             button {
@@ -535,6 +636,11 @@
 
             .grid-toggle {
                 font-size: 13px;
+            }
+
+            .char-controls button {
+                font-size: 12px;
+                padding: 6px 12px;
             }
         }
 
@@ -576,18 +682,19 @@
             }
 
             .character-display {
-                width: 100%;
+                min-width: 240px;
                 max-width: 240px;
+                padding: 12px;
             }
 
-            #pinyin-display {
+            .pinyin-display {
                 font-size: 28px;
                 min-height: 40px;
                 margin-bottom: 12px;
             }
 
-            #grid-target {
-                max-width: 240px;
+            .grid-target {
+                max-width: 200px;
                 border: 3px solid #87CEEB;
             }
 
@@ -619,12 +726,23 @@
             }
 
             .grid-toggle {
-                margin-top: 12px;
                 padding: 6px 12px;
             }
 
             .grid-toggle label {
                 font-size: 12px;
+            }
+
+            .ai-tips {
+                margin: 12px auto 0;
+                padding: 12px 16px 12px 16px;
+            }
+
+            .ai-tips-content {
+                font-size: 13px;
+                line-height: 1.5;
+                min-height: 58px;
+                max-height: 58px;
             }
 
             .switch {
@@ -644,8 +762,7 @@
             .ai-tips {
                 margin: 12px auto 0;
                 padding: 12px 16px;
-                max-width: 95%;
-                min-height: 70px;
+                min-height: 90px;
             }
 
             .ai-tips::before {
@@ -660,12 +777,29 @@
             }
 
             .ai-tips-content {
-                font-size: 14px;
+                font-size: 13px;
+                line-height: 1.6;
             }
 
             .footer {
                 font-size: 13px;
                 margin-top: 18px;
+            }
+
+            .char-controls button {
+                font-size: 11px;
+                padding: 6px 10px;
+            }
+
+            .speak-ai-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 14px;
+            }
+
+            .characters-container {
+                gap: 15px;
+                padding: 15px 5px;
             }
         }
 
@@ -719,54 +853,50 @@
         <div class="char-cards" id="charCards"></div>
         
         <div class="input-group">
-            <input type="text" id="charInput" placeholder="输入汉字" maxlength="1" value="猫">
-            <button onclick="loadCharacter()">🚀 开始学习</button>
+            <input type="text" id="charInput" placeholder="输入1-4个汉字" maxlength="4" value="猫">
+            <button onclick="loadCharacters()">🚀 开始学习</button>
         </div>
 
         <div class="loading" id="loading">✨ 正在加载中...</div>
 
-        <div class="character-display">
-            <!-- 拼音显示 -->
-            <div id="pinyin-display">māo</div>
-            
-            <!-- 田字格和汉字渲染区域 -->
-            <div id="grid-target"></div>
-            
-            <!-- AI 写法提示（放在田字格下方，占位固定） -->
-            <div class="ai-tips" id="aiTips">
-                <div class="ai-tips-title">✨ AI 小老师说</div>
-                <div class="ai-tips-content" id="aiTipsContent">
-                    <div class="ai-tips-loading">正在思考</div>
-                </div>
+        <!-- 多字符横向滑动容器 -->
+        <div class="characters-container" id="charactersContainer"></div>
+
+        <!-- 全局控制按钮 -->
+        <div class="global-controls">
+            <!-- 我来写开关 -->
+            <div class="grid-toggle">
+                <label for="quizSwitch">
+                    <span>✍️ 我来写</span>
+                </label>
+                <label class="switch">
+                    <input type="checkbox" id="quizSwitch" onchange="toggleQuizMode()">
+                    <span class="slider"></span>
+                </label>
             </div>
-        </div>
-
-        <div class="controls">
-            <button class="btn-outline" onclick="animateChar()">📝 播放动画</button>
-            <button class="btn-outline" onclick="quizMode()">✍️ 描红练习</button>
-            <button class="btn-outline" onclick="speak()">🔊 听发音</button>
-        </div>
-
-        <!-- 田字格开关 -->
-        <div class="grid-toggle">
-            <label for="gridSwitch">
-                <span>📐 田字格</span>
-            </label>
-            <label class="switch">
-                <input type="checkbox" id="gridSwitch" checked onchange="toggleGrid()">
-                <span class="slider"></span>
-            </label>
+            
+            <!-- 田字格开关 -->
+            <div class="grid-toggle">
+                <label for="gridSwitch">
+                    <span>📐 田字格</span>
+                </label>
+                <label class="switch">
+                    <input type="checkbox" id="gridSwitch" checked onchange="toggleGrid()">
+                    <span class="slider"></span>
+                </label>
+            </div>
         </div>
     </div>
 
     <div class="footer">
-        <p>🌟 点击分类按钮选择汉字，或者自己输入想学的字 🌟</p>
+        <p>🌟 点击分类按钮选择汉字，或输入1-4个汉字学习 🌟</p>
     </div>
 
     <script>
-        let writer;
+        let writers = []; // 改为数组存储多个writer
         const { pinyin } = pinyinPro; // 初始化拼音库
         let showGrid = true; // 田字格开关状态
+        let currentChars = []; // 当前学习的汉字数组
 
         // 豆包 API 配置
         const DOUBAO_CONFIG = {
@@ -888,7 +1018,7 @@
             
             // 生成汉字卡片
             cardsContainer.innerHTML = chars.map(char => 
-                `<div class="char-card" onclick="selectChar('${char}')">${char}</div>`
+                `<div class="char-card" onclick="selectChar('${char}')\">${char}</div>`
             ).join('');
             
             // 显示卡片区域
@@ -898,25 +1028,44 @@
             cardsContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
-        // 选择汉字
+        // 选择汉字（支持累加到输入框，最多4个）
         function selectChar(char) {
-            document.getElementById('charInput').value = char;
-            loadCharacter();
-            // 滚动到学习区域
-            document.getElementById('grid-target').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const input = document.getElementById('charInput');
+            let currentValue = input.value.trim();
+            
+            // 如果已经有4个字，替换最后一个
+            if (currentValue.length >= 4) {
+                currentValue = currentValue.substring(0, 3);
+            }
+            
+            // 添加新字符
+            input.value = currentValue + char;
+            
+            // 如果达到1个字，自动加载
+            if (input.value.length >= 1) {
+                loadCharacters();
+                // 滚动到学习区域
+                setTimeout(() => {
+                    const container = document.getElementById('charactersContainer');
+                    if (container) {
+                        container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 300);
+            }
         }
 
         // 初始化加载
         window.onload = function() {
-            loadCharacter();
+            loadCharacters();
         };
 
-        // 核心功能：加载汉字
-        function loadCharacter() {
-            const char = document.getElementById('charInput').value.trim();
+        // 核心功能：加载多个汉字
+        function loadCharacters() {
+            const input = document.getElementById('charInput').value.trim();
             
-            if (!char || !/^[\u4e00-\u9fa5]$/.test(char)) {
-                alert("请输入一个中文汉字！");
+            // 验证输入：1-4个汉字
+            if (!input || !/^[\u4e00-\u9fa5]{1,4}$/.test(input)) {
+                alert("请输入1-4个中文汉字！");
                 document.getElementById('charInput').focus();
                 return;
             }
@@ -926,47 +1075,29 @@
             loading.classList.add('active');
 
             try {
-                // 1. 获取拼音
-                const py = pinyin(char, { toneType: 'symbol' }); // 获取带声调拼音
-                document.getElementById('pinyin-display').innerText = py;
-
-                // 2. 清空旧的 canvas
-                document.getElementById('grid-target').innerHTML = '';
-
-                // 3. 根据屏幕尺寸动态设置大小
-                const containerWidth = document.getElementById('grid-target').offsetWidth || 300;
-                const writerSize = Math.min(containerWidth, 300);
-
-                // 4. 初始化 Hanzi Writer
-                const writerOptions = {
-                    width: writerSize,
-                    height: writerSize,
-                    padding: 5,
-                    showOutline: true, // 显示灰色轮廓
-                    strokeAnimationSpeed: 1.2, // 动画速度（稍慢便于儿童观察）
-                    delayBetweenStrokes: 300, // 笔画间隔
-                    radicalsColor: '#FF69B4', // 偏旁部首颜色
-                    showCharacter: true,
-                    showHintAfterMisses: 2, // 2次错误后显示提示
-                    highlightOnComplete: true,
-                    outlineColor: '#FFB6C1',
-                    strokeColor: '#4169E1', // 笔画颜色
-                    drawingColor: '#FF69B4' // 描红时的颜色
-                };
-
-                writer = HanziWriter.create('grid-target', char, writerOptions);
-
-                // 添加田字格
-                addCustomGrid(writerSize);
+                // 将输入转换为字符数组
+                currentChars = input.split('');
+                writers = [];
                 
+                // 清空容器
+                const container = document.getElementById('charactersContainer');
+                container.innerHTML = '';
+                
+                // 单个字时添加居中样式
+                if (currentChars.length === 1) {
+                    container.classList.add('single-char');
+                } else {
+                    container.classList.remove('single-char');
+                }
+
+                // 为每个汉字创建独立的展示区
+                currentChars.forEach((char, index) => {
+                    createCharacterDisplay(char, index, container);
+                });
+
                 // 隐藏加载状态
                 loading.classList.remove('active');
                 
-                // 获取AI写法提示
-                getAITips(char);
-                
-                // 自动播放一次动画
-                setTimeout(animateChar, 800);
             } catch (error) {
                 loading.classList.remove('active');
                 console.error('加载汉字失败:', error);
@@ -974,19 +1105,87 @@
             }
         }
 
-        // 功能：播放笔顺动画
-        function animateChar() {
-            if(writer) {
-                writer.animateCharacter();
-            } else {
-                alert('请先加载一个汉字');
+        // 创建单个汉字的展示区
+        function createCharacterDisplay(char, index, container) {
+            // 创建展示容器
+            const displayDiv = document.createElement('div');
+            displayDiv.className = 'character-display';
+            displayDiv.id = `char-display-${index}`;
+
+            // 获取拼音
+            const py = pinyin(char, { toneType: 'symbol' });
+
+            // 构建HTML结构
+            displayDiv.innerHTML = `
+                <div class="pinyin-display">${py}</div>
+                <div class="grid-target" id="grid-target-${index}"></div>
+                <div class="ai-tips" id="aiTips-${index}">
+                    <div class="ai-tips-title">
+                        <span>✨ 老师指导</span>
+                        <button class="speak-ai-btn" onclick="speakAITips(${index})" title="听老师讲解">🔊</button>
+                    </div>
+                    <div class="ai-tips-content" id="aiTipsContent-${index}">
+                        <div class="ai-tips-loading">正在思考</div>
+                    </div>
+                </div>
+                <div class="char-controls">
+                    <button class="btn-outline" onclick="animateChar(${index})">📝 笔顺动画</button>
+                    <button class="btn-outline" onclick="speakChar(${index})">🔊 发音</button>
+                </div>
+            `;
+
+            container.appendChild(displayDiv);
+
+            // 初始化 Hanzi Writer
+            const gridTarget = document.getElementById(`grid-target-${index}`);
+            const containerWidth = gridTarget.offsetWidth || 260;
+            const writerSize = Math.min(containerWidth, 260);
+
+            const writerOptions = {
+                width: writerSize,
+                height: writerSize,
+                padding: 5,
+                showOutline: true,
+                strokeAnimationSpeed: 1.2,
+                delayBetweenStrokes: 300,
+                radicalsColor: '#FF69B4',
+                showCharacter: true,
+                showHintAfterMisses: 2,
+                highlightOnComplete: true,
+                outlineColor: '#FFB6C1',
+                strokeColor: '#4169E1',
+                drawingColor: '#FF69B4'
+            };
+
+            const writer = HanziWriter.create(`grid-target-${index}`, char, writerOptions);
+            writers[index] = writer;
+
+            // 添加田字格
+            setTimeout(() => addCustomGrid(writerSize, `grid-target-${index}`), 100);
+
+            // 获取AI提示
+            getAITips(char, index);
+
+            // 自动播放第一个字的动画
+            if (index === 0) {
+                setTimeout(() => animateChar(0), 800);
             }
         }
 
-        // 功能：描红测验模式（用户自己写）
-        function quizMode() {
-            if(writer) {
-                writer.quiz({
+        // 功能：播放指定汉字的笔顺动画
+        function animateChar(index) {
+            if(writers[index]) {
+                writers[index].animateCharacter();
+            } else {
+                alert('请先加载汉字');
+            }
+        }
+
+        // 功能：指定汉字的描红测验模式
+        function quizMode(index) {
+            if(writers[index]) {
+                const char = currentChars[index];
+                writers[index].quiz({
                     onMistake: function(strokeData) {
                         console.log('写错了！当前笔画:', strokeData.strokeNum);
                     },
@@ -994,7 +1193,6 @@
                         console.log('这一笔对了！完成进度:', strokeData.strokeNum + 1);
                     },
                     onComplete: function(summaryData) {
-                        const char = document.getElementById('charInput').value;
                         const totalStrokes = summaryData.totalMistakes + summaryData.strokesRemaining;
                         const mistakes = summaryData.totalMistakes;
                         
@@ -1011,71 +1209,147 @@
                         }
                         
                         alert(message);
-                        // 完成后不自动播放语音，由用户自己点击
                         
                         // 播放完成动画
                         setTimeout(() => {
-                            animateChar();
+                            animateChar(index);
                         }, 500);
                     }
                 });
             } else {
-                alert('请先加载一个汉字');
+                alert('请先加载汉字');
             }
         }
 
-        // 功能：文字转语音 (TTS)
-        function speak() {
-            const char = document.getElementById('charInput').value.trim();
+        // 全局"我来写"开关：让所有字符进入或退出描红模式
+        function toggleQuizMode() {
+            const isQuizMode = document.getElementById('quizSwitch').checked;
+            
+            if (writers.length === 0) {
+                alert('请先加载汉字');
+                document.getElementById('quizSwitch').checked = false;
+                return;
+            }
+            
+            if (isQuizMode) {
+                // 开启描红模式：让所有汉字同时进入描红模式
+                writers.forEach((writer, index) => {
+                    if (writer) {
+                        quizMode(index);
+                    }
+                });
+                
+                // 滚动到第一个字符
+                const firstDisplay = document.getElementById('char-display-0');
+                if (firstDisplay) {
+                    firstDisplay.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            } else {
+                // 关闭描红模式：重新加载汉字（退出描红状态）
+                loadCharacters();
+            }
+        }
+
+        // 功能：播放指定汉字的发音
+        function speakChar(index) {
+            const char = currentChars[index];
             if (!char) return;
             
             if ('speechSynthesis' in window) {
-                // 停止之前的语音
                 window.speechSynthesis.cancel();
                 
-                // 等待语音合成器准备好
-                const speakChar = () => {
+                const speakCharFunc = () => {
                     const utterance = new SpeechSynthesisUtterance(char);
-                    utterance.lang = 'zh-CN'; // 设置为中文
-                    utterance.rate = 0.8; // 语速稍慢
-                    utterance.pitch = 1; // 音调
-                    utterance.volume = 1; // 音量
+                    utterance.lang = 'zh-CN';
+                    utterance.rate = 0.8;
+                    utterance.pitch = 1;
+                    utterance.volume = 1;
                     
-                    // 添加错误处理
                     utterance.onerror = function(event) {
                         console.error('语音播放错误:', event);
-                        // 如果浏览器不支持中文语音，尝试使用默认语言
                         if (event.error === 'language-unavailable') {
-                            // 使用百度语音API作为备选
                             useFallbackTTS(char);
                         }
-                    };
-                    
-                    utterance.onend = function() {
-                        console.log('语音播放完成');
                     };
                     
                     window.speechSynthesis.speak(utterance);
                 };
 
-                // 移动端需要先获取语音列表
                 if (window.speechSynthesis.getVoices().length === 0) {
                     window.speechSynthesis.addEventListener('voiceschanged', function() {
-                        speakChar();
+                        speakCharFunc();
                     }, { once: true });
                     
-                    // 设置超时，如果3秒内没有获取到声音列表，直接播放
                     setTimeout(() => {
                         if (window.speechSynthesis.speaking === false) {
-                            speakChar();
+                            speakCharFunc();
                         }
                     }, 3000);
                 } else {
-                    speakChar();
+                    speakCharFunc();
                 }
             } else {
-                // 浏览器不支持Web Speech API，使用备选方案
                 useFallbackTTS(char);
+            }
+        }
+
+        // 新功能：播放AI提示的语音
+        function speakAITips(index) {
+            const aiTipsContent = document.getElementById(`aiTipsContent-${index}`);
+            if (!aiTipsContent) return;
+            
+            // 获取AI提示的文本内容（去除HTML标签）
+            const tipsText = aiTipsContent.textContent || aiTipsContent.innerText;
+            
+            // 过滤掉加载中的提示
+            if (tipsText.includes('正在思考') || tipsText.trim() === '') {
+                showToast('💡 AI老师还在思考中哦~');
+                return;
+            }
+            
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                
+                const speakTipsFunc = () => {
+                    const utterance = new SpeechSynthesisUtterance(tipsText);
+                    utterance.lang = 'zh-CN';
+                    utterance.rate = 0.75; // 稍慢，便于儿童理解
+                    utterance.pitch = 1.1; // 稍高，更亲切
+                    utterance.volume = 1;
+                    
+                    utterance.onerror = function(event) {
+                        console.error('语音播放错误:', event);
+                        if (event.error === 'language-unavailable') {
+                            useFallbackTTS(tipsText);
+                        }
+                    };
+                    
+                    utterance.onstart = function() {
+                        showToast('🔊 AI老师正在讲解...');
+                    };
+                    
+                    utterance.onend = function() {
+                        showToast('✨ 讲解完成！');
+                    };
+                    
+                    window.speechSynthesis.speak(utterance);
+                };
+
+                if (window.speechSynthesis.getVoices().length === 0) {
+                    window.speechSynthesis.addEventListener('voiceschanged', function() {
+                        speakTipsFunc();
+                    }, { once: true });
+                    
+                    setTimeout(() => {
+                        if (window.speechSynthesis.speaking === false) {
+                            speakTipsFunc();
+                        }
+                    }, 3000);
+                } else {
+                    speakTipsFunc();
+                }
+            } else {
+                useFallbackTTS(tipsText);
             }
         }
 
@@ -1154,7 +1428,7 @@
         // 监听回车键
         document.getElementById('charInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
-                loadCharacter();
+                loadCharacters();
             }
         });
 
@@ -1163,10 +1437,10 @@
             this.select();
         });
 
-        // 获取AI写法提示
-        async function getAITips(char) {
-            const aiTipsDiv = document.getElementById('aiTips');
-            const aiTipsContent = document.getElementById('aiTipsContent');
+        // 获取AI写法提示（改进版，支持索引）
+        async function getAITips(char, index) {
+            const aiTipsDiv = document.getElementById(`aiTips-${index}`);
+            const aiTipsContent = document.getElementById(`aiTipsContent-${index}`);
             
             // 显示加载状态（使用淡入效果，不改变位置）
             aiTipsContent.innerHTML = '<div class="ai-tips-loading">正在思考</div>';
@@ -1230,22 +1504,19 @@
                 }
 
                 const data = await response.json();
-                console.log('豆包API返回:', data); // 调试日志
+                console.log('豆包API返回:', data);
                 
                 let aiResponse = data.choices?.[0]?.message?.content;
                 
                 if (aiResponse) {
                     aiResponse = aiResponse.trim();
-                    console.log('AI原始回答:', aiResponse); // 调试日志
+                    console.log('AI原始回答:', aiResponse);
                     
                     // 严格过滤禁用词
                     const forbiddenWords = ['第', '笔', '先', '再', '然后', '接着', '组成', '部首', '偏旁', '由'];
                     const hasForbidden = forbiddenWords.some(word => aiResponse.includes(word));
                     
-                    // 检查是否太长（可能在解释而非简要说明）
                     const isTooLong = aiResponse.length > 80;
-                    
-                    // 检查是否被截断
                     const isTruncated = data.choices?.[0]?.finish_reason === 'length';
                     
                     if (hasForbidden || isTooLong || isTruncated) {
@@ -1265,10 +1536,10 @@
             }
         }
 
-        // 添加自定义田字格
-        function addCustomGrid(size = 300) {
+        // 添加自定义田字格（改进版，支持指定目标）
+        function addCustomGrid(size = 260, targetId) {
             setTimeout(() => {
-                const svg = document.querySelector('#grid-target svg');
+                const svg = document.querySelector(`#${targetId} svg`);
                 if (!svg) return;
 
                 // 移除之前的田字格（如果有）
@@ -1326,10 +1597,12 @@
         // 切换田字格显示
         function toggleGrid() {
             showGrid = document.getElementById('gridSwitch').checked;
-            const gridGroup = document.querySelector('#custom-grid');
-            if (gridGroup) {
-                gridGroup.style.display = showGrid ? 'block' : 'none';
-            }
+            const gridGroups = document.querySelectorAll('#custom-grid');
+            gridGroups.forEach(gridGroup => {
+                if (gridGroup) {
+                    gridGroup.style.display = showGrid ? 'block' : 'none';
+                }
+            });
         }
     </script>
 </body>
