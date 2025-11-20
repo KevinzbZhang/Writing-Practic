@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>逍遥学习字帖</title>
+    
+    <!-- 引入核心库 -->
+    <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+    <script src="https://unpkg.com/pinyin-pro"></script>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+            background: linear-gradient(180deg, #87CEEB 0%, #FFE4E1 100%);
+            background-attachment: fixed;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 可爱的云朵装饰 */
+        .cloud {
+            position: fixed;
+            background: white;
+            border-radius: 100px;
+            opacity: 0.7;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .cloud:before, .cloud:after {
+            content: '';
+            position: absolute;
+            background: white;
+            border-radius: 100px;
+        }
+
+        .cloud1 {
+            width: 100px;
+            height: 40px;
+            top: 50px;
+            left: 10%;
+        }
+
+        .cloud1:before {
+            width: 50px;
+            height: 50px;
+            top: -25px;
+            left: 10px;
+        }
+
+        .cloud1:after {
+            width: 60px;
+            height: 40px;
+            top: -15px;
+            right: 10px;
+        }
+
+        .cloud2 {
+            width: 80px;
+            height: 35px;
+            top: 150px;
+            right: 15%;
+            animation-delay: 3s;
+        }
+
+        .cloud2:before {
+            width: 40px;
+            height: 40px;
+            top: -20px;
+            left: 10px;
+        }
+
+        .cloud2:after {
+            width: 50px;
+            height: 35px;
+            top: -12px;
+            right: 10px;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            text-align: center;
+            max-width: 900px;
+            width: 100%;
+            animation: fadeIn 0.6s ease-in;
+            border: 4px solid #FFB6C1;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        h1 {
+            color: #FF69B4;
+            margin-bottom: 20px;
+            font-size: 36px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(255,105,180,0.3);
+            letter-spacing: 3px;
+        }
+
+        /* 分类选择区域 */
+        .categories {
+            margin-bottom: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .category-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: linear-gradient(135deg, #FFB6C1 0%, #FFC0CB 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(255,182,193,0.3);
+        }
+
+        .category-btn:hover {
+            transform: scale(1.1) rotate(-2deg);
+            box-shadow: 0 6px 15px rgba(255,182,193,0.5);
+        }
+
+        .category-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* 汉字卡片区域 */
+        .char-cards {
+            display: none;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #FFF8DC;
+            border-radius: 15px;
+            border: 3px dashed #FFB6C1;
+        }
+
+        .char-cards.active {
+            display: flex;
+            animation: slideDown 0.4s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .char-card {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border: 3px solid #87CEEB;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #333;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+        }
+
+        .char-card:hover {
+            background: #87CEEB;
+            color: white;
+            transform: scale(1.15) rotate(5deg);
+            box-shadow: 0 5px 15px rgba(135,206,235,0.4);
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        input {
+            padding: 14px;
+            font-size: 20px;
+            border: 3px solid #FFB6C1;
+            border-radius: 15px;
+            width: 180px;
+            text-align: center;
+            transition: all 0.3s;
+            font-weight: bold;
+            background: #FFFACD;
+        }
+
+        input:focus {
+            border-color: #FF69B4;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(255,105,180,0.2);
+            transform: scale(1.05);
+        }
+
+        button {
+            padding: 14px 28px;
+            font-size: 18px;
+            background: linear-gradient(135deg, #FF69B4 0%, #FFB6C1 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(255,105,180,0.3);
+        }
+
+        button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(255,105,180,0.5);
+        }
+
+        button:active {
+            transform: translateY(0) scale(1);
+        }
+
+        /* 汉字展示区 */
+        .character-display {
+            margin: 0 auto;
+            position: relative;
+            width: 300px;
+        }
+
+        #pinyin-display {
+            font-size: 40px;
+            color: #FF6347;
+            font-weight: bold;
+            margin-bottom: 15px;
+            min-height: 55px;
+            text-shadow: 2px 2px 6px rgba(255,99,71,0.3);
+            background: linear-gradient(135deg, #FF6347 0%, #FF69B4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        #grid-target {
+            margin: 0 auto;
+            border: 4px solid #87CEEB;
+            background-color: #FFFEF0;
+            cursor: pointer;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(135,206,235,0.3);
+        }
+
+        .controls {
+            margin-top: 25px;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-outline {
+            background: white;
+            border: 3px solid #87CEEB;
+            color: #4169E1;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 20px;
+            box-shadow: 0 3px 10px rgba(135,206,235,0.2);
+        }
+        
+        .btn-outline:hover {
+            background: linear-gradient(135deg, #87CEEB 0%, #4169E1 100%);
+            color: white;
+            border-color: transparent;
+            transform: translateY(-3px) scale(1.05);
+        }
+
+        /* 田字格开关 */
+        .grid-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 15px;
+            padding: 8px 15px;
+            background: #FFF8DC;
+            border-radius: 20px;
+            border: 2px solid #FFB6C1;
+            display: inline-flex;
+        }
+
+        .grid-toggle label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #FF69B4;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* 可爱的开关按钮 */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 45px;
+            height: 22px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 22px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background: linear-gradient(135deg, #FF69B4 0%, #FFB6C1 100%);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(23px);
+        }
+
+        .footer {
+            margin-top: 25px;
+            color: #FF69B4;
+            font-size: 16px;
+            text-align: center;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+
+            .category-btn {
+                font-size: 14px;
+                padding: 8px 16px;
+            }
+
+            .char-card {
+                width: 50px;
+                height: 50px;
+                font-size: 24px;
+            }
+
+            .character-display {
+                width: 280px;
+            }
+
+            #pinyin-display {
+                font-size: 32px;
+            }
+
+            button {
+                font-size: 16px;
+                padding: 12px 20px;
+            }
+
+            .btn-outline {
+                font-size: 14px;
+                padding: 10px 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 24px;
+            }
+
+            .character-display {
+                width: 240px;
+            }
+
+            .char-card {
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+            }
+        }
+
+        /* 加载提示 */
+        .loading {
+            display: none;
+            color: #FF69B4;
+            margin-top: 10px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .loading.active {
+            display: block;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- 云朵装饰 -->
+    <div class="cloud cloud1"></div>
+    <div class="cloud cloud2"></div>
+
+    <div class="container">
+        <h1>🎨 逍遥学习字帖 🌈</h1>
+        
+        <!-- 分类选择 -->
+        <div class="categories">
+            <button class="category-btn" onclick="showCategory('animals')">🐾 动物</button>
+            <button class="category-btn" onclick="showCategory('family')">👨‍👩‍👧‍👦 家人</button>
+            <button class="category-btn" onclick="showCategory('plants')">🌱 植物</button>
+            <button class="category-btn" onclick="showCategory('fruits')">🍎 水果</button>
+            <button class="category-btn" onclick="showCategory('colors')">🎨 颜色</button>
+            <button class="category-btn" onclick="showCategory('numbers')">🔢 数字</button>
+            <button class="category-btn" onclick="showCategory('weather')">☀️ 天气</button>
+            <button class="category-btn" onclick="showCategory('body')">👋 身体</button>
+        </div>
+
+        <!-- 汉字卡片显示区 -->
+        <div class="char-cards" id="charCards"></div>
+        
+        <div class="input-group">
+            <input type="text" id="charInput" placeholder="输入汉字" maxlength="1" value="猫">
+            <button onclick="loadCharacter()">🚀 开始学习</button>
+        </div>
+
+        <div class="loading" id="loading">✨ 正在加载中...</div>
+
+        <div class="character-display">
+            <!-- 拼音显示 -->
+            <div id="pinyin-display">māo</div>
+            <!-- 田字格和汉字渲染区域 -->
+            <div id="grid-target"></div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-outline" onclick="animateChar()">📝 播放动画</button>
+            <button class="btn-outline" onclick="quizMode()">✍️ 描红练习</button>
+            <button class="btn-outline" onclick="speak()">🔊 听发音</button>
+        </div>
+
+        <!-- 田字格开关 -->
+        <div class="grid-toggle">
+            <label for="gridSwitch">
+                <span>📐 田字格</span>
+            </label>
+            <label class="switch">
+                <input type="checkbox" id="gridSwitch" checked onchange="toggleGrid()">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>🌟 点击分类按钮选择汉字，或者自己输入想学的字 🌟</p>
+    </div>
+
+    <script>
+        let writer;
+        const { pinyin } = pinyinPro; // 初始化拼音库
+        let showGrid = true; // 田字格开关状态
+
+        // 常用字分类数据库
+        const charCategories = {
+            animals: ['猫', '狗', '鸟', '鱼', '马', '牛', '羊', '兔', '鸡', '鸭', '象', '虎', '龙', '蛇', '鼠', '猪'],
+            family: ['爸', '妈', '哥', '姐', '弟', '妹', '爷', '奶', '叔', '姨', '舅', '姑', '家', '人', '我', '你'],
+            plants: ['花', '草', '树', '叶', '根', '枝', '竹', '松', '梅', '兰', '荷', '菊', '木', '林', '森', '苗'],
+            fruits: ['苹', '果', '梨', '桃', '橙', '柚', '瓜', '莓', '葡', '萄', '香', '蕉', '枣', '李', '杏', '柿'],
+            colors: ['红', '黄', '蓝', '绿', '白', '黑', '紫', '粉', '橙', '灰', '金', '银', '彩', '色'],
+            numbers: ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '百', '千', '万', '零'],
+            weather: ['晴', '雨', '雪', '风', '云', '雷', '电', '霜', '雾', '冰', '热', '冷', '暖', '凉'],
+            body: ['手', '脚', '头', '眼', '耳', '口', '鼻', '牙', '舌', '心', '肚', '腿', '臂', '指', '发', '脸']
+        };
+
+        let currentCategory = null;
+
+        // 显示分类汉字
+        function showCategory(category) {
+            currentCategory = category;
+            const cardsContainer = document.getElementById('charCards');
+            const chars = charCategories[category];
+            
+            // 生成汉字卡片
+            cardsContainer.innerHTML = chars.map(char => 
+                `<div class="char-card" onclick="selectChar('${char}')">${char}</div>`
+            ).join('');
+            
+            // 显示卡片区域
+            cardsContainer.classList.add('active');
+            
+            // 滚动到卡片区域
+            cardsContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // 选择汉字
+        function selectChar(char) {
+            document.getElementById('charInput').value = char;
+            loadCharacter();
+            // 滚动到学习区域
+            document.getElementById('grid-target').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // 初始化加载
+        window.onload = function() {
+            loadCharacter();
+        };
+
+        // 核心功能：加载汉字
+        function loadCharacter() {
+            const char = document.getElementById('charInput').value.trim();
+            
+            if (!char || !/^[\u4e00-\u9fa5]$/.test(char)) {
+                alert("请输入一个中文汉字！");
+                document.getElementById('charInput').focus();
+                return;
+            }
+
+            // 显示加载状态
+            const loading = document.getElementById('loading');
+            loading.classList.add('active');
+
+            try {
+                // 1. 获取拼音
+                const py = pinyin(char, { toneType: 'symbol' }); // 获取带声调拼音
+                document.getElementById('pinyin-display').innerText = py;
+
+                // 2. 清空旧的 canvas
+                document.getElementById('grid-target').innerHTML = '';
+
+                // 3. 初始化 Hanzi Writer
+                const writerOptions = {
+                    width: 300,
+                    height: 300,
+                    padding: 5,
+                    showOutline: true, // 显示灰色轮廓
+                    strokeAnimationSpeed: 1.2, // 动画速度（稍慢便于儿童观察）
+                    delayBetweenStrokes: 300, // 笔画间隔
+                    radicalsColor: '#FF69B4', // 偏旁部首颜色
+                    showCharacter: true,
+                    showHintAfterMisses: 2, // 2次错误后显示提示
+                    highlightOnComplete: true,
+                    outlineColor: '#FFB6C1',
+                    strokeColor: '#4169E1', // 笔画颜色
+                    drawingColor: '#FF69B4' // 描红时的颜色
+                };
+
+                writer = HanziWriter.create('grid-target', char, writerOptions);
+
+                // 添加田字格
+                addCustomGrid();
+                
+                // 隐藏加载状态
+                loading.classList.remove('active');
+                
+                // 朗读一次
+                setTimeout(speak, 500);
+                // 自动播放一次动画
+                setTimeout(animateChar, 1000);
+            } catch (error) {
+                loading.classList.remove('active');
+                console.error('加载汉字失败:', error);
+                alert('加载汉字失败，请检查网络连接或尝试其他汉字');
+            }
+        }
+
+        // 功能：播放笔顺动画
+        function animateChar() {
+            if(writer) {
+                writer.animateCharacter();
+            } else {
+                alert('请先加载一个汉字');
+            }
+        }
+
+        // 功能：描红测验模式（用户自己写）
+        function quizMode() {
+            if(writer) {
+                writer.quiz({
+                    onMistake: function(strokeData) {
+                        console.log('写错了！当前笔画:', strokeData.strokeNum);
+                    },
+                    onCorrectStroke: function(strokeData) {
+                        console.log('这一笔对了！完成进度:', strokeData.strokeNum + 1);
+                    },
+                    onComplete: function(summaryData) {
+                        const char = document.getElementById('charInput').value;
+                        const totalStrokes = summaryData.totalMistakes + summaryData.strokesRemaining;
+                        const mistakes = summaryData.totalMistakes;
+                        
+                        let message = '';
+                        if (mistakes === 0) {
+                            message = `🎉 太棒了！「${char}」写得真好！\n全部正确，你真聪明！⭐⭐⭐`;
+                        } else if (mistakes <= 3) {
+                            message = `😊 很不错！「${char}」写得挺好的！\n再练习一下会更棒哦！⭐⭐`;
+                        } else {
+                            message = `💪 加油！「${char}」已经完成啦！\n多练几次就能写得很好！⭐`;
+                        }
+                        
+                        alert(message);
+                        speak();
+                        
+                        // 播放完成动画
+                        setTimeout(() => {
+                            animateChar();
+                        }, 500);
+                    }
+                });
+            } else {
+                alert('请先加载一个汉字');
+            }
+        }
+
+        // 功能：文字转语音 (TTS)
+        function speak() {
+            const char = document.getElementById('charInput').value.trim();
+            if (!char) return;
+            
+            if ('speechSynthesis' in window) {
+                // 停止之前的语音
+                window.speechSynthesis.cancel();
+                
+                const utterance = new SpeechSynthesisUtterance(char);
+                utterance.lang = 'zh-CN'; // 设置为中文
+                utterance.rate = 0.8; // 语速稍慢
+                utterance.pitch = 1; // 音调
+                utterance.volume = 1; // 音量
+                
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert("您的浏览器不支持语音播放");
+            }
+        }
+
+        // 监听回车键
+        document.getElementById('charInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                loadCharacter();
+            }
+        });
+
+        // 自动聚焦输入框
+        document.getElementById('charInput').addEventListener('click', function() {
+            this.select();
+        });
+
+        // 添加自定义田字格
+        function addCustomGrid() {
+            setTimeout(() => {
+                const svg = document.querySelector('#grid-target svg');
+                if (!svg) return;
+
+                // 移除之前的田字格（如果有）
+                const oldGrid = svg.querySelector('#custom-grid');
+                if (oldGrid) oldGrid.remove();
+
+                // 创建田字格组
+                const gridGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                gridGroup.setAttribute('id', 'custom-grid');
+                gridGroup.style.display = showGrid ? 'block' : 'none';
+
+                // 获取 SVG 尺寸
+                const width = 300;
+                const height = 300;
+                const halfW = width / 2;
+                const halfH = height / 2;
+
+                // 创建虚线样式
+                const lineStyle = {
+                    stroke: '#FFB6C1',
+                    strokeWidth: '1.5',
+                    strokeDasharray: '5,5',
+                    strokeLinecap: 'round'
+                };
+
+                // 横向中线
+                const hLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                hLine.setAttribute('x1', '0');
+                hLine.setAttribute('y1', halfH.toString());
+                hLine.setAttribute('x2', width.toString());
+                hLine.setAttribute('y2', halfH.toString());
+                Object.entries(lineStyle).forEach(([key, value]) => {
+                    hLine.setAttribute(key, value);
+                });
+
+                // 纵向中线
+                const vLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                vLine.setAttribute('x1', halfW.toString());
+                vLine.setAttribute('y1', '0');
+                vLine.setAttribute('x2', halfW.toString());
+                vLine.setAttribute('y2', height.toString());
+                Object.entries(lineStyle).forEach(([key, value]) => {
+                    vLine.setAttribute(key, value);
+                });
+
+                // 添加到组
+                gridGroup.appendChild(hLine);
+                gridGroup.appendChild(vLine);
+
+                // 插入到 SVG 的最前面（背景层）
+                svg.insertBefore(gridGroup, svg.firstChild);
+            }, 100);
+        }
+
+        // 切换田字格显示
+        function toggleGrid() {
+            showGrid = document.getElementById('gridSwitch').checked;
+            const gridGroup = document.querySelector('#custom-grid');
+            if (gridGroup) {
+                gridGroup.style.display = showGrid ? 'block' : 'none';
+            }
+        }
+    </script>
+</body>
+</html>
