@@ -761,10 +761,8 @@
                 // 隐藏加载状态
                 loading.classList.remove('active');
                 
-                // 朗读一次
-                setTimeout(speak, 500);
                 // 自动播放一次动画
-                setTimeout(animateChar, 1000);
+                setTimeout(animateChar, 800);
             } catch (error) {
                 loading.classList.remove('active');
                 console.error('加载汉字失败:', error);
@@ -806,7 +804,7 @@
                         }
                         
                         alert(message);
-                        speak();
+                        // 完成后不自动播放语音，由用户自己点击
                         
                         // 播放完成动画
                         setTimeout(() => {
@@ -828,16 +826,122 @@
                 // 停止之前的语音
                 window.speechSynthesis.cancel();
                 
-                const utterance = new SpeechSynthesisUtterance(char);
-                utterance.lang = 'zh-CN'; // 设置为中文
-                utterance.rate = 0.8; // 语速稍慢
-                utterance.pitch = 1; // 音调
-                utterance.volume = 1; // 音量
-                
-                window.speechSynthesis.speak(utterance);
+                // 等待语音合成器准备好
+                const speakChar = () => {
+                    const utterance = new SpeechSynthesisUtterance(char);
+                    utterance.lang = 'zh-CN'; // 设置为中文
+                    utterance.rate = 0.8; // 语速稍慢
+                    utterance.pitch = 1; // 音调
+                    utterance.volume = 1; // 音量
+                    
+                    // 添加错误处理
+                    utterance.onerror = function(event) {
+                        console.error('语音播放错误:', event);
+                        // 如果浏览器不支持中文语音，尝试使用默认语言
+                        if (event.error === 'language-unavailable') {
+                            // 使用百度语音API作为备选
+                            useFallbackTTS(char);
+                        }
+                    };
+                    
+                    utterance.onend = function() {
+                        console.log('语音播放完成');
+                    };
+                    
+                    window.speechSynthesis.speak(utterance);
+                };
+
+                // 移动端需要先获取语音列表
+                if (window.speechSynthesis.getVoices().length === 0) {
+                    window.speechSynthesis.addEventListener('voiceschanged', function() {
+                        speakChar();
+                    }, { once: true });
+                    
+                    // 设置超时，如果3秒内没有获取到声音列表，直接播放
+                    setTimeout(() => {
+                        if (window.speechSynthesis.speaking === false) {
+                            speakChar();
+                        }
+                    }, 3000);
+                } else {
+                    speakChar();
+                }
             } else {
-                alert("您的浏览器不支持语音播放");
+                // 浏览器不支持Web Speech API，使用备选方案
+                useFallbackTTS(char);
             }
+        }
+
+        // 备选TTS方案：使用百度或其他在线TTS服务
+        function useFallbackTTS(text) {
+            try {
+                // 方案1：使用百度在线TTS（免费，无需API key）
+                const audio = new Audio();
+                // 百度TTS接口（有限制，仅作演示）
+                const url = `https://fanyi.baidu.com/gettts?lan=zh&text=${encodeURIComponent(text)}&spd=3&source=web`;
+                
+                audio.src = url;
+                audio.play().catch(err => {
+                    console.error('音频播放失败:', err);
+                    // 如果还是失败，提示用户
+                    showToast('💡 请点击"🔊 听发音"按钮来播放语音');
+                });
+            } catch (error) {
+                console.error('备选TTS失败:', error);
+                showToast('⚠️ 语音播放暂时不可用');
+            }
+        }
+
+        // 显示提示信息
+        function showToast(message) {
+            // 创建或获取提示元素
+            let toast = document.getElementById('toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'toast';
+                toast.style.cssText = `
+                    position: fixed;
+                    bottom: 80px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: rgba(255, 105, 180, 0.95);
+                    color: white;
+                    padding: 12px 24px;
+                    border-radius: 25px;
+                    font-size: 14px;
+                    font-weight: bold;
+                    z-index: 9999;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                    animation: slideUp 0.3s ease-out;
+                    max-width: 80%;
+                    text-align: center;
+                `;
+                document.body.appendChild(toast);
+                
+                // 添加动画样式
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes slideUp {
+                        from {
+                            opacity: 0;
+                            transform: translateX(-50%) translateY(20px);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: translateX(-50%) translateY(0);
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            toast.textContent = message;
+            toast.style.display = 'block';
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
         }
 
         // 监听回车键
